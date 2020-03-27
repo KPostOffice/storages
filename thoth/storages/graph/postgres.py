@@ -3866,13 +3866,19 @@ class GraphDatabase(SQLBase):
                     query = query.join(PythonPackageIndex)
                     query = query.filter(PythonPackageIndex.url == index_url)
 
+            print(query.all())
+
             if package_name is not None:
                 package_name = self.normalize_python_package_name(package_name)
                 query = query.filter(PythonPackageVersion.package_name == package_name)
 
+            print(query.all())
+
             if package_version is not None:
                 package_version = self.normalize_python_package_version(package_version)
                 query = query.filter(PythonPackageVersion.package_version == package_version)
+
+            print(query.all())
 
             query = query.offset(start_offset).limit(count)
             print(query.all())
