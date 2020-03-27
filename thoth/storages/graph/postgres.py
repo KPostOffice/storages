@@ -3875,12 +3875,12 @@ class GraphDatabase(SQLBase):
                 query = query.filter(PythonPackageVersion.package_version == package_version)
 
             query = query.offset(start_offset).limit(count)
-
+            print(query.all())
             query = query.with_entities(AdviserRun.origin)
-
+            print(query.all())
             if distinct:
                 query = query.distinct()
-
+            print(query.all())
             result = [r[0] for r in query.all() if r[0]]   # We do not consider None results
 
             return result
