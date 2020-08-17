@@ -5529,6 +5529,29 @@ class GraphDatabase(SQLBase):
 
         return {"memory_cache_info": stats}
 
+    def check_for_corrupted_indexes(self):
+        """Run amcheck to check for db corruption. This function is called by metrics exporter."""
+        query = """SELECT bt_index_check(index => c.oid, heapallindexed =>    i.indisunique),
+            c.relname,
+            c.relpages
+            FROM pg_index i
+            JOIN pg_opclass op ON i.indclass[0] = op.oid
+            JOIN pg_am am ON op.opcmethod = am.oid
+            JOIN pg_class c ON i.indexrelid = c.oid
+            WHERE am.amname = 'btree'
+            -- Don't check temp tables, which may be from another session:
+            AND c.relpersistence != 't'
+            -- Function may throw an error when this is omitted:
+            AND c.relkind = 'i' AND i.indisready AND i.indisvalid
+            ORDER BY c.relpages"""
+
+        with self._session_scope() as session:
+            try:
+                session.execute(query)
+                return True
+            except:
+                return False
+
     def get_bloat_data(self) -> dict:
         """Get bloat data."""
         # Reference: https://raw.githubusercontent.com/pgexperts/pgx_scripts/master/bloat/table_bloat_check.sql
